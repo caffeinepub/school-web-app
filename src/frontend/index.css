@@ -1,0 +1,818 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Font-face declarations ──────────────────────────────── */
+@font-face {
+  font-family: "Playfair Display";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/assets/fonts/PlayfairDisplay-Italic-VariableFont_wght.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Playfair Display";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/assets/fonts/PlayfairDisplay-VariableFont_wght.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: italic;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/assets/fonts/PlusJakartaSans-Italic-VariableFont_wght.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/assets/fonts/PlusJakartaSans-VariableFont_wght.woff2") format("woff2");
+}
+
+/* ─── Design Tokens ───────────────────────────────────────── */
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* ── Navy/gold prestigious school theme (DARK default) ── */
+    /* Slightly raised lightness for better visibility in bright environments */
+    --background: 0.20 0.038 268;
+    --foreground: 0.96 0.010 80;
+
+    --card: 0.245 0.042 265;
+    --card-foreground: 0.96 0.010 80;
+
+    --popover: 0.225 0.040 265;
+    --popover-foreground: 0.96 0.010 80;
+
+    /* Primary = deep midnight navy */
+    --primary: 0.305 0.085 265;
+    --primary-foreground: 0.96 0.010 80;
+
+    /* Secondary = slightly lighter navy */
+    --secondary: 0.268 0.058 265;
+    --secondary-foreground: 0.90 0.018 80;
+
+    /* Gold accent — the signature color */
+    --accent: 0.80 0.168 85;
+    --accent-foreground: 0.10 0.025 265;
+
+    /* Muted — slightly lighter for legibility */
+    --muted: 0.258 0.048 265;
+    --muted-foreground: 0.82 0.04 265;
+
+    /* Destructive */
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    /* Borders / ring — slightly lighter for visibility */
+    --border: 0.36 0.055 265;
+    --input: 0.32 0.048 265;
+    --ring: 0.80 0.168 85;
+
+    /* Gold tokens */
+    --gold: 0.78 0.168 85;
+    --gold-dim: 0.64 0.138 82;
+    --gold-bright: 0.89 0.19 88;
+    --gold-pale: 0.92 0.08 90;
+
+    /* Charts */
+    --chart-1: 0.78 0.168 85;
+    --chart-2: 0.62 0.14 195;
+    --chart-3: 0.66 0.18 320;
+    --chart-4: 0.72 0.16 148;
+    --chart-5: 0.68 0.19 38;
+
+    /* Sidebar */
+    --sidebar: 0.175 0.029 265;
+    --sidebar-foreground: 0.95 0.012 80;
+    --sidebar-primary: 0.78 0.168 85;
+    --sidebar-primary-foreground: 0.10 0.025 265;
+    --sidebar-accent: 0.21 0.052 265;
+    --sidebar-accent-foreground: 0.88 0.018 80;
+    --sidebar-border: 0.28 0.052 265;
+    --sidebar-ring: 0.78 0.168 85;
+  }
+
+  /* ── LIGHT MODE OVERRIDES ── */
+  html.light {
+    color-scheme: light;
+
+    /* Soft warm beige-gray background — not pure white */
+    --background: 0.94 0.010 80;
+    --foreground: 0.14 0.04 265;
+
+    /* Cards slightly lighter than background but not white */
+    --card: 0.97 0.007 82;
+    --card-foreground: 0.14 0.04 265;
+
+    --popover: 0.96 0.007 82;
+    --popover-foreground: 0.14 0.04 265;
+
+    --primary: 0.85 0.010 265;
+    --primary-foreground: 0.14 0.04 265;
+
+    --secondary: 0.90 0.012 80;
+    --secondary-foreground: 0.20 0.04 265;
+
+    /* Gold accent — slightly deeper for better contrast on light bg */
+    --accent: 0.62 0.148 82;
+    --accent-foreground: 0.97 0.007 82;
+
+    /* Muted — soft beige with good contrast */
+    --muted: 0.89 0.012 80;
+    --muted-foreground: 0.38 0.05 265;
+
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+
+    --border: 0.78 0.025 265;
+    --input: 0.80 0.020 265;
+    --ring: 0.62 0.148 82;
+
+    --gold: 0.62 0.148 82;
+    --gold-dim: 0.52 0.125 80;
+    --gold-bright: 0.72 0.165 88;
+    --gold-pale: 0.86 0.08 90;
+
+    --sidebar: 0.91 0.012 80;
+    --sidebar-foreground: 0.14 0.04 265;
+    --sidebar-primary: 0.62 0.148 82;
+    --sidebar-primary-foreground: 0.97 0.007 82;
+    --sidebar-accent: 0.88 0.012 80;
+    --sidebar-accent-foreground: 0.14 0.04 265;
+    --sidebar-border: 0.78 0.025 265;
+    --sidebar-ring: 0.62 0.148 82;
+  }
+
+  * {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    font-feature-settings: "kern" 1, "liga" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+/* ─── Utility Classes ─────────────────────────────────────── */
+@layer utilities {
+  .font-display {
+    font-family: "Playfair Display", Georgia, serif;
+  }
+  .font-body {
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  }
+
+  /* ── Gold glow hierarchy ── */
+  /* Subtle: borders / dividers */
+  .glow-gold-xs {
+    box-shadow: 0 0 8px oklch(var(--gold) / 0.25);
+  }
+  /* Medium: card hover accents */
+  .glow-gold {
+    box-shadow:
+      0 0 20px oklch(var(--gold) / 0.35),
+      0 0 40px oklch(var(--gold) / 0.15);
+  }
+  /* Strong: CTA buttons, hero elements */
+  .glow-gold-strong {
+    box-shadow:
+      0 0 16px oklch(var(--gold) / 0.55),
+      0 0 40px oklch(var(--gold) / 0.25),
+      0 0 80px oklch(var(--gold) / 0.1);
+  }
+
+  /* Text glow for headings */
+  .glow-gold-text {
+    text-shadow:
+      0 0 24px oklch(var(--gold) / 0.5),
+      0 0 60px oklch(var(--gold) / 0.2);
+  }
+  .glow-gold-text-subtle {
+    text-shadow: 0 0 32px oklch(var(--gold) / 0.35);
+  }
+
+  /* Inset ring glow for borders */
+  .glow-gold-border {
+    box-shadow:
+      0 0 0 1px oklch(var(--gold) / 0.55),
+      0 0 16px oklch(var(--gold) / 0.18),
+      inset 0 0 0 1px oklch(var(--gold) / 0.08);
+  }
+
+  /* ── Glass morphism ── */
+  /* Navbar-grade: always-on glass, subtle gold tint */
+  .glass-nav {
+    background: oklch(var(--background) / 0.82);
+    backdrop-filter: blur(24px) saturate(200%) brightness(0.96);
+    -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(0.96);
+    border-bottom: 1px solid oklch(var(--gold) / 0.14);
+    box-shadow:
+      0 1px 0 0 oklch(var(--gold) / 0.08),
+      0 4px 24px oklch(0 0 0 / 0.18);
+  }
+  /* Enhanced shadow when page is scrolled */
+  .glass-nav.scrolled-nav {
+    background: oklch(var(--background) / 0.92);
+    border-bottom-color: oklch(var(--gold) / 0.22);
+    box-shadow:
+      0 1px 0 0 oklch(var(--gold) / 0.12),
+      0 8px 32px oklch(0 0 0 / 0.30),
+      0 2px 8px oklch(0 0 0 / 0.15);
+  }
+  /* Card-grade: more opaque, warmer */
+  .glass {
+    background: oklch(var(--card) / 0.72);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid oklch(var(--border) / 0.45);
+  }
+  .glass-heavy {
+    background: oklch(var(--card) / 0.88);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid oklch(var(--border) / 0.55);
+  }
+
+  /* ── Gradient text ── */
+  /* Multi-stop gold gradient — the hero headline treatment */
+  .gradient-text-gold {
+    background: linear-gradient(
+      120deg,
+      oklch(var(--gold-bright)) 0%,
+      oklch(var(--gold)) 40%,
+      oklch(0.92 0.15 78) 65%,
+      oklch(var(--gold-dim)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    /* Fallback for when gradient-clip fails */
+    color: oklch(var(--gold));
+  }
+  .gradient-text-silver {
+    background: linear-gradient(120deg, oklch(0.95 0.01 80) 0%, oklch(0.75 0.02 80) 50%, oklch(0.92 0.01 80) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ── Backgrounds ── */
+  .bg-navy-deep {
+    background: oklch(0.10 0.04 270);
+  }
+  .bg-navy-gradient {
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, oklch(0.22 0.06 260) 0%, oklch(0.15 0.035 270) 100%);
+  }
+  .bg-hero-overlay {
+    background: linear-gradient(
+      180deg,
+      oklch(0.09 0.04 268 / 0.55) 0%,
+      oklch(0.10 0.04 268 / 0.80) 50%,
+      oklch(0.115 0.028 268 / 0.97) 100%
+    );
+  }
+
+  /* ── Card shadows ── */
+  .shadow-card {
+    box-shadow:
+      0 4px 16px oklch(0 0 0 / 0.3),
+      0 0 0 1px oklch(var(--border) / 0.45);
+  }
+  /* Elevated card — the definitive premium hover state */
+  .shadow-card-hover {
+    box-shadow:
+      0 28px 56px oklch(0 0 0 / 0.48),
+      0 8px 16px oklch(0 0 0 / 0.25),
+      0 0 0 1px oklch(var(--gold) / 0.38),
+      0 0 32px oklch(var(--gold) / 0.12),
+      inset 0 1px 0 oklch(var(--gold) / 0.08);
+  }
+  .card-premium {
+    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s ease;
+    box-shadow:
+      0 4px 16px oklch(0 0 0 / 0.3),
+      0 0 0 1px oklch(var(--border) / 0.45);
+  }
+  .card-premium:hover {
+    transform: translateY(-6px) scale(1.005);
+    box-shadow:
+      0 28px 56px oklch(0 0 0 / 0.48),
+      0 8px 16px oklch(0 0 0 / 0.25),
+      0 0 0 1px oklch(var(--gold) / 0.38),
+      0 0 32px oklch(var(--gold) / 0.12),
+      inset 0 1px 0 oklch(var(--gold) / 0.08);
+  }
+
+  /* ── Gold dividers ── */
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, oklch(var(--gold) / 0.55), transparent);
+  }
+  .gold-divider-thick {
+    height: 2px;
+    background: linear-gradient(90deg, transparent 0%, oklch(var(--gold) / 0.7) 30%, oklch(var(--gold)) 50%, oklch(var(--gold) / 0.7) 70%, transparent 100%);
+  }
+
+  /* ── CTA button gold treatment ── */
+  .btn-gold {
+    background: linear-gradient(135deg, oklch(var(--gold-bright)) 0%, oklch(var(--gold)) 60%, oklch(var(--gold-dim)) 100%);
+    color: oklch(0.10 0.025 265);
+    font-weight: 700;
+    border: none;
+    transition: box-shadow 0.25s ease, transform 0.2s ease, filter 0.2s ease;
+    box-shadow:
+      0 4px 16px oklch(var(--gold) / 0.3),
+      0 2px 4px oklch(0 0 0 / 0.2);
+  }
+  .btn-gold:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow:
+      0 8px 32px oklch(var(--gold) / 0.55),
+      0 0 60px oklch(var(--gold) / 0.25),
+      0 4px 8px oklch(0 0 0 / 0.25);
+  }
+  .btn-gold:active {
+    transform: translateY(0);
+    filter: brightness(0.95);
+  }
+
+  /* ── Outline gold button ── */
+  .btn-gold-outline {
+    background: transparent;
+    color: oklch(var(--gold));
+    border: 1px solid oklch(var(--gold) / 0.6);
+    font-weight: 600;
+    transition: box-shadow 0.25s ease, background 0.2s ease, transform 0.2s ease;
+  }
+  .btn-gold-outline:hover {
+    background: oklch(var(--gold) / 0.08);
+    border-color: oklch(var(--gold));
+    box-shadow:
+      0 0 20px oklch(var(--gold) / 0.35),
+      0 0 40px oklch(var(--gold) / 0.12);
+    transform: translateY(-1px);
+  }
+
+  /* ── Stat card glow animation ── */
+  .stat-glow {
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, oklch(var(--gold) / 0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ── Nav link hover underline ── */
+  .nav-link {
+    position: relative;
+    transition: color 0.2s ease;
+  }
+  .nav-link::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, oklch(var(--gold)), oklch(var(--gold-bright)), oklch(var(--gold-dim)));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+    border-radius: 2px;
+  }
+  .nav-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+    box-shadow: 0 0 10px oklch(var(--gold) / 0.65);
+  }
+  .nav-link.active::after {
+    transform: scaleX(1);
+    transform-origin: left;
+    box-shadow: 0 0 10px oklch(var(--gold) / 0.65);
+  }
+  .nav-link.active {
+    color: oklch(var(--gold));
+    background: oklch(0.78 0.168 85 / 0.1);
+    border: 1px solid oklch(0.78 0.168 85 / 0.2);
+    border-radius: 6px;
+  }
+  .nav-link:hover {
+    color: oklch(var(--gold));
+  }
+
+  /* ── Section entrance animation delay helpers ── */
+  .delay-100 { animation-delay: 0.1s; }
+  .delay-200 { animation-delay: 0.2s; }
+  .delay-300 { animation-delay: 0.3s; }
+  .delay-400 { animation-delay: 0.4s; }
+  .delay-500 { animation-delay: 0.5s; }
+  .delay-600 { animation-delay: 0.6s; }
+}
+
+/* ─── Light Mode Overrides ───────────────────────────────── */
+
+/* ── Body text ── */
+html.light body {
+  color: oklch(0.14 0.04 265);
+}
+
+/* ── Global section backgrounds ── */
+html.light section,
+html.light [data-ocid$=".section"],
+html.light [data-ocid$=".page"] {
+  background: oklch(var(--background)) !important;
+  border-color: oklch(var(--border) / 0.5) !important;
+}
+
+html.light .min-h-screen,
+html.light [class*="min-h-screen"] {
+  background: oklch(var(--background));
+}
+
+/* Alternating section tint for visual rhythm */
+html.light [data-ocid="home.stats.section"],
+html.light [data-ocid="home.gallery.section"],
+html.light [data-ocid="home.sports.gallery.section"],
+html.light [data-ocid="home.about.section"],
+html.light [data-ocid="about.highlights.section"],
+html.light [data-ocid="teachers.gallery.section"],
+html.light [data-ocid="students.computer.section"] {
+  background: oklch(0.93 0.012 80) !important;
+  border-color: oklch(0.78 0.025 265 / 0.4) !important;
+}
+
+/* ── Card & premium card ── */
+html.light .card-premium {
+  background: oklch(var(--card)) !important;
+  border-color: oklch(var(--border) / 0.7) !important;
+  box-shadow: 0 2px 14px oklch(0 0 0 / 0.07), 0 0 0 1px oklch(0.78 0.025 265 / 0.55) !important;
+}
+html.light .card-premium:hover {
+  box-shadow:
+    0 14px 36px oklch(0 0 0 / 0.12),
+    0 0 0 1px oklch(0.62 0.148 82 / 0.45),
+    0 0 22px oklch(0.62 0.148 82 / 0.10) !important;
+}
+
+/* ── Page header gradient blocks ── */
+html.light [style*="linear-gradient(180deg, oklch(0.14 0.05 265)"],
+html.light [style*="linear-gradient(180deg, oklch(0.13 0.0"] {
+  background: linear-gradient(180deg, oklch(0.88 0.015 80) 0%, oklch(0.94 0.010 80) 100%) !important;
+}
+
+/* ── All inline dark backgrounds need to become light ── */
+/* Section backgrounds with dark oklch values */
+html.light [style*="background: oklch(0.1"],
+html.light [style*="background: oklch(0.2"],
+html.light [style*="background:oklch(0.1"],
+html.light [style*="background:oklch(0.2"] {
+  background: oklch(var(--card)) !important;
+}
+
+/* ── Text color fixes — light text on dark bg is invisible in light mode ── */
+/* Heading colors that use near-white */
+html.light [style*="color: oklch(0.95"],
+html.light [style*="color: oklch(0.92"],
+html.light [style*="color: oklch(0.88"],
+html.light [style*="color: oklch(0.82"],
+html.light [style*="color: oklch(0.80"] {
+  color: oklch(0.18 0.04 265) !important;
+}
+
+/* Muted text that's too light */
+html.light [style*="color: oklch(0.72 0.04"],
+html.light [style*="color: oklch(0.70 0.04"],
+html.light [style*="color: oklch(0.62 0.04"] {
+  color: oklch(0.32 0.05 265) !important;
+}
+
+/* Gold accent text stays recognizable but slightly deeper */
+html.light [style*="color: oklch(0.88 0.168"],
+html.light [style*="color: oklch(0.78 0.168"],
+html.light [style*="color: oklch(0.88 0.16"] {
+  color: oklch(0.48 0.140 82) !important;
+}
+
+/* ── Gradient text gold for light backgrounds ── */
+html.light .gradient-text-gold {
+  background: linear-gradient(
+    120deg,
+    oklch(0.48 0.148 85) 0%,
+    oklch(0.42 0.140 82) 50%,
+    oklch(0.38 0.125 80) 100%
+  ) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* ── Navbar ── */
+html.light .glass-nav {
+  background: oklch(0.95 0.010 80 / 0.92);
+  backdrop-filter: blur(24px) saturate(180%) brightness(1.01);
+  -webkit-backdrop-filter: blur(24px) saturate(180%) brightness(1.01);
+  border-bottom: 1px solid oklch(0.62 0.148 82 / 0.2);
+  box-shadow:
+    0 1px 0 0 oklch(0.62 0.148 82 / 0.12),
+    0 4px 20px oklch(0 0 0 / 0.07);
+}
+html.light .glass-nav.scrolled-nav {
+  background: oklch(0.96 0.010 80 / 0.97);
+  border-bottom-color: oklch(0.62 0.148 82 / 0.3);
+  box-shadow:
+    0 1px 0 0 oklch(0.62 0.148 82 / 0.18),
+    0 6px 24px oklch(0 0 0 / 0.10);
+}
+
+/* Nav links in light mode */
+html.light .nav-link {
+  color: oklch(0.25 0.04 265);
+}
+html.light .nav-link:hover,
+html.light .nav-link.active {
+  color: oklch(0.42 0.140 82);
+}
+html.light .nav-link.active {
+  background: oklch(0.62 0.148 82 / 0.08);
+  border-color: oklch(0.62 0.148 82 / 0.2);
+}
+html.light .text-foreground\/75 {
+  color: oklch(0.30 0.04 265);
+}
+
+/* ── Hero overlay in light mode ── */
+html.light .bg-hero-overlay {
+  background: linear-gradient(
+    180deg,
+    oklch(0.10 0.04 268 / 0.60) 0%,
+    oklch(0.10 0.04 268 / 0.82) 50%,
+    oklch(0.10 0.035 268 / 0.96) 100%
+  );
+}
+
+/* Hero additional dark overlay stays same for readability against image */
+/* ── Stat card in light mode ── */
+html.light .stat-glow {
+  background: oklch(var(--card)) !important;
+  border: 1px solid oklch(0.78 0.025 265 / 0.6) !important;
+}
+html.light .stat-glow::after {
+  background: radial-gradient(ellipse at 50% 0%, oklch(0.62 0.148 82 / 0.05) 0%, transparent 70%);
+}
+
+/* ── Gold glow utility adjustments ── */
+html.light .glow-gold {
+  box-shadow: 0 0 16px oklch(0.62 0.148 82 / 0.22), 0 0 32px oklch(0.62 0.148 82 / 0.10);
+}
+html.light .glow-gold-text {
+  text-shadow: 0 0 18px oklch(0.62 0.148 82 / 0.35), 0 0 40px oklch(0.62 0.148 82 / 0.12);
+}
+html.light .glow-gold-text-subtle {
+  text-shadow: 0 0 20px oklch(0.62 0.148 82 / 0.20);
+}
+
+/* ── Announcement bar in light mode ── */
+html.light [data-ocid="announcement.bar"],
+html.light .announcement-bar {
+  background: linear-gradient(90deg, oklch(0.48 0.140 82) 0%, oklch(0.38 0.120 80) 100%) !important;
+}
+
+/* ── Button variants ── */
+html.light .btn-gold-outline {
+  color: oklch(0.42 0.140 82);
+  border-color: oklch(0.42 0.140 82 / 0.65);
+}
+html.light .btn-gold-outline:hover {
+  background: oklch(0.42 0.140 82 / 0.06);
+  border-color: oklch(0.42 0.140 82);
+  box-shadow: 0 0 14px oklch(0.42 0.140 82 / 0.25);
+}
+
+/* ── Gold dividers ── */
+html.light .gold-divider {
+  background: linear-gradient(90deg, transparent, oklch(0.52 0.140 82 / 0.6), transparent);
+}
+html.light .gold-divider-thick {
+  background: linear-gradient(90deg, transparent 0%, oklch(0.52 0.140 82 / 0.7) 30%, oklch(0.48 0.148 82) 50%, oklch(0.52 0.140 82 / 0.7) 70%, transparent 100%);
+}
+
+/* ── Footer in light mode ── */
+html.light footer {
+  background: oklch(0.91 0.012 80) !important;
+  border-top-color: oklch(0.78 0.025 265 / 0.5) !important;
+}
+html.light footer a,
+html.light footer p,
+html.light footer address {
+  color: oklch(0.28 0.04 265) !important;
+}
+html.light footer .font-display,
+html.light footer [style*="color: oklch(0.88 0.168"],
+html.light footer [style*="color: oklch(0.82 0.155"] {
+  color: oklch(0.42 0.140 82) !important;
+}
+
+/* ── Admission popup & form in light mode ── */
+html.light [data-ocid*="admission"] [style*="background: oklch(0.1"],
+html.light [data-ocid*="admission"] [style*="background: oklch(0.2"] {
+  background: oklch(var(--card)) !important;
+}
+
+/* ── Shimmer in light mode ── */
+html.light .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(0.88 0.012 80) 0%,
+    oklch(0.93 0.008 80) 50%,
+    oklch(0.88 0.012 80) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s linear infinite;
+}
+
+/* ── Scrollbar ── */
+html.light ::-webkit-scrollbar-track {
+  background: oklch(0.90 0.010 80);
+}
+html.light ::-webkit-scrollbar-thumb {
+  background: oklch(0.72 0.025 265);
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.52 0.140 82 / 0.6);
+}
+
+/* ── Popup / dialog in light mode ── */
+html.light dialog[data-ocid="admission.dialog"],
+html.light [data-ocid="admission.dialog"] {
+  background: oklch(0.97 0.007 82) !important;
+  border-color: oklch(0.52 0.140 82 / 0.5) !important;
+  box-shadow: 0 0 40px oklch(0.52 0.140 82 / 0.12), 0 24px 48px oklch(0 0 0 / 0.18) !important;
+}
+/* Popup heading text */
+html.light [data-ocid="admission.dialog"] h2,
+html.light [data-ocid="admission.dialog"] h3 {
+  color: oklch(0.18 0.04 265) !important;
+  -webkit-text-fill-color: initial !important;
+  background: none !important;
+}
+/* Keep gradient heading gold-style for popup in light mode */
+html.light [data-ocid="admission.dialog"] h2 {
+  background: linear-gradient(120deg, oklch(0.48 0.148 85), oklch(0.38 0.128 82)) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+html.light [data-ocid="admission.dialog"] p {
+  color: oklch(0.25 0.04 265) !important;
+}
+/* Info box inside popup */
+html.light [data-ocid="admission.dialog"] [style*="background: oklch(0.115"],
+html.light [data-ocid="admission.dialog"] [style*="background: oklch(0.155"],
+html.light [data-ocid="admission.dialog"] [style*="background: oklch(0.1"] {
+  background: oklch(0.92 0.010 80) !important;
+  border-color: oklch(0.62 0.148 82 / 0.3) !important;
+}
+/* Input fields inside popup */
+html.light [data-ocid="admission.dialog"] input,
+html.light [data-ocid="admission.dialog"] select,
+html.light [data-ocid="admission.dialog"] textarea {
+  background: oklch(0.97 0.007 82) !important;
+  color: oklch(0.14 0.04 265) !important;
+  border-color: oklch(0.72 0.025 265 / 0.8) !important;
+}
+html.light [data-ocid="admission.dialog"] input::placeholder,
+html.light [data-ocid="admission.dialog"] textarea::placeholder {
+  color: oklch(0.55 0.04 265) !important;
+}
+html.light [data-ocid="admission.dialog"] label {
+  color: oklch(0.35 0.05 265) !important;
+}
+/* Select options */
+html.light [data-ocid="admission.dialog"] option {
+  background: oklch(0.97 0.007 82) !important;
+  color: oklch(0.14 0.04 265) !important;
+}
+/* Success message */
+html.light [data-ocid="admission.success_state"] {
+  background: oklch(0.88 0.08 145 / 0.3) !important;
+  border-color: oklch(0.55 0.14 145 / 0.5) !important;
+}
+html.light [data-ocid="admission.success_state"] p {
+  color: oklch(0.28 0.12 145) !important;
+}
+
+/* ── Hero text visible over background image (keep same in both modes) ── */
+/* Eyebrow "Welcome to" text */
+html.light [style*="color: oklch(0.78 0.168 85)"] {
+  color: oklch(0.55 0.148 85) !important;
+}
+
+/* ── Gallery image shimmer in light mode ── */
+html.light [style*="oklch(0.18 0.035 266)"][style*="shimmer"],
+html.light [style*="oklch(0.24 0.04 265)"][style*="shimmer"] {
+  background: linear-gradient(90deg, oklch(0.88 0.010 80) 0%, oklch(0.93 0.008 80) 40%, oklch(0.88 0.010 80) 80%) !important;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: oklch(var(--background));
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(var(--border));
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--gold) / 0.5);
+}
+
+/* ─── Selection ──────────────────────────────────────────── */
+::selection {
+  background: oklch(var(--gold) / 0.28);
+  color: oklch(var(--foreground));
+}
+
+/* ─── Focus visible ring ─────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid oklch(var(--gold) / 0.7);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─── Input overrides ────────────────────────────────────── */
+input::placeholder,
+textarea::placeholder {
+  color: oklch(var(--muted-foreground) / 0.6);
+}
+
+/* ─── Scroll reveal ─────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.revealed {
+  opacity: 1;
+  transform: none;
+}
+
+/* ─── Skeleton shimmer ───────────────────────────────────── */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(var(--muted)) 0%,
+    oklch(var(--secondary)) 50%,
+    oklch(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.8s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 4px 24px oklch(0.78 0.168 85 / 0.45), 0 2px 8px oklch(0 0 0 / 0.3); }
+  50% { box-shadow: 0 4px 36px oklch(0.78 0.168 85 / 0.7), 0 2px 12px oklch(0 0 0 / 0.35), 0 0 60px oklch(0.78 0.168 85 / 0.2); }
+}
