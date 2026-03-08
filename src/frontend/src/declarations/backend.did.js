@@ -8,6 +8,18 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
+export const TeacherResource = IDL.Record({
+  'id' : IDL.Text,
+  'title' : IDL.Text,
+  'externalLink' : IDL.Text,
+  'fileData' : IDL.Text,
+  'description' : IDL.Text,
+  'fileName' : IDL.Text,
+  'resourceType' : IDL.Text,
+  'category' : IDL.Text,
+  'uploadedAt' : IDL.Int,
+  'textContent' : IDL.Text,
+});
 export const AdmissionEnquiry = IDL.Record({
   'id' : IDL.Text,
   'studentName' : IDL.Text,
@@ -46,12 +58,32 @@ export const Teacher = IDL.Record({
 });
 
 export const idlService = IDL.Service({
+  'addTeacherResource' : IDL.Func(
+      [
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+        IDL.Text,
+      ],
+      [TeacherResource],
+      [],
+    ),
+  'deleteTeacherResource' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'getAdmissionEnquiries' : IDL.Func(
       [],
       [IDL.Vec(AdmissionEnquiry)],
       ['query'],
     ),
   'getAllStudents' : IDL.Func([], [IDL.Vec(Student)], ['query']),
+  'getAllTeacherResources' : IDL.Func(
+      [],
+      [IDL.Vec(TeacherResource)],
+      ['query'],
+    ),
   'getAllTeachers' : IDL.Func([], [IDL.Vec(Teacher)], ['query']),
   'getStudentById' : IDL.Func([IDL.Text], [Student], ['query']),
   'getTeacherById' : IDL.Func([IDL.Text], [Teacher], ['query']),
@@ -66,6 +98,18 @@ export const idlService = IDL.Service({
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
+  const TeacherResource = IDL.Record({
+    'id' : IDL.Text,
+    'title' : IDL.Text,
+    'externalLink' : IDL.Text,
+    'fileData' : IDL.Text,
+    'description' : IDL.Text,
+    'fileName' : IDL.Text,
+    'resourceType' : IDL.Text,
+    'category' : IDL.Text,
+    'uploadedAt' : IDL.Int,
+    'textContent' : IDL.Text,
+  });
   const AdmissionEnquiry = IDL.Record({
     'id' : IDL.Text,
     'studentName' : IDL.Text,
@@ -104,12 +148,32 @@ export const idlFactory = ({ IDL }) => {
   });
   
   return IDL.Service({
+    'addTeacherResource' : IDL.Func(
+        [
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+          IDL.Text,
+        ],
+        [TeacherResource],
+        [],
+      ),
+    'deleteTeacherResource' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'getAdmissionEnquiries' : IDL.Func(
         [],
         [IDL.Vec(AdmissionEnquiry)],
         ['query'],
       ),
     'getAllStudents' : IDL.Func([], [IDL.Vec(Student)], ['query']),
+    'getAllTeacherResources' : IDL.Func(
+        [],
+        [IDL.Vec(TeacherResource)],
+        ['query'],
+      ),
     'getAllTeachers' : IDL.Func([], [IDL.Vec(Teacher)], ['query']),
     'getStudentById' : IDL.Func([IDL.Text], [Student], ['query']),
     'getTeacherById' : IDL.Func([IDL.Text], [Teacher], ['query']),

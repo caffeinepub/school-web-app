@@ -30,6 +30,11 @@ const NAV_LINKS = [
   { label: "Students", to: "/students" as const, ocid: "nav.students.link" },
   { label: "About Us", to: "/about" as const, ocid: "nav.about.link" },
   { label: "Fees", to: "/fees" as const, ocid: "nav.fees.link" },
+  {
+    label: "Teacher Resources",
+    to: "/teacher-resources" as const,
+    ocid: "nav.teacher-resources.link",
+  },
 ];
 
 // ── Theme hook ──────────────────────────────────────────────

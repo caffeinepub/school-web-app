@@ -1,9 +1,11 @@
 import { createRootRoute, createRoute } from "@tanstack/react-router";
 import { RootLayout } from "./layouts/RootLayout";
 import { AboutPage } from "./pages/AboutPage";
+import { AdminPanelPage } from "./pages/AdminPanelPage";
 import { FeesPage } from "./pages/FeesPage";
 import { HomePage } from "./pages/HomePage";
 import { StudentsPage } from "./pages/StudentsPage";
+import { TeacherResourcesPage } from "./pages/TeacherResourcesPage";
 import { TeachersPage } from "./pages/TeachersPage";
 
 const rootRoute = createRootRoute({
@@ -40,10 +42,25 @@ const feesRoute = createRoute({
   component: FeesPage,
 });
 
+const teacherResourcesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/teacher-resources",
+  component: TeacherResourcesPage,
+});
+
+// Hidden admin route — not linked in any public UI (navbar, footer, etc.)
+const adminPanelRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin-panel",
+  component: AdminPanelPage,
+});
+
 export const routeTree = rootRoute.addChildren([
   indexRoute,
   teachersRoute,
   studentsRoute,
   aboutRoute,
   feesRoute,
+  teacherResourcesRoute,
+  adminPanelRoute,
 ]);

@@ -98,6 +98,18 @@ export interface AdmissionEnquiry {
     village: string;
     phone: string;
 }
+export interface TeacherResource {
+    id: string;
+    title: string;
+    externalLink: string;
+    fileData: string;
+    description: string;
+    fileName: string;
+    resourceType: string;
+    category: string;
+    uploadedAt: bigint;
+    textContent: string;
+}
 export interface Teacher {
     id: string;
     bio: string;
@@ -126,8 +138,11 @@ export enum Subject {
     Science = "Science"
 }
 export interface backendInterface {
+    addTeacherResource(title: string, description: string, resourceType: string, fileData: string, fileName: string, externalLink: string, textContent: string, category: string): Promise<TeacherResource>;
+    deleteTeacherResource(id: string): Promise<boolean>;
     getAdmissionEnquiries(): Promise<Array<AdmissionEnquiry>>;
     getAllStudents(): Promise<Array<Student>>;
+    getAllTeacherResources(): Promise<Array<TeacherResource>>;
     getAllTeachers(): Promise<Array<Teacher>>;
     getStudentById(id: string): Promise<Student>;
     getTeacherById(id: string): Promise<Teacher>;
@@ -137,6 +152,34 @@ export interface backendInterface {
 import type { Subject as _Subject, Teacher as _Teacher } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async addTeacherResource(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string, arg7: string): Promise<TeacherResource> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addTeacherResource(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addTeacherResource(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7);
+            return result;
+        }
+    }
+    async deleteTeacherResource(arg0: string): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteTeacherResource(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteTeacherResource(arg0);
+            return result;
+        }
+    }
     async getAdmissionEnquiries(): Promise<Array<AdmissionEnquiry>> {
         if (this.processError) {
             try {
@@ -162,6 +205,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getAllStudents();
+            return result;
+        }
+    }
+    async getAllTeacherResources(): Promise<Array<TeacherResource>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllTeacherResources();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllTeacherResources();
             return result;
         }
     }

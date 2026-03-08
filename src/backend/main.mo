@@ -5,9 +5,10 @@ import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Time "mo:core/Time";
 import Int "mo:core/Int";
+import Order "mo:core/Order";
+import Migration "migration";
 
-
-
+(with migration = Migration.run)
 actor {
   type Subject = {
     #Mathematics;
@@ -49,13 +50,28 @@ actor {
     submittedAt : Int;
   };
 
+  type TeacherResource = {
+    id : Text;
+    title : Text;
+    description : Text;
+    resourceType : Text;
+    fileData : Text;
+    fileName : Text;
+    externalLink : Text;
+    textContent : Text;
+    uploadedAt : Int;
+    category : Text;
+  };
+
   var nextTeacherId = 7;
   var nextStudentId = 13;
   var nextAdmissionEnquiryId = 1;
+  var nextResourceId = 1;
 
   let teachers = Map.empty<Text, Teacher>();
   let students = Map.empty<Text, Student>();
   let admissionEnquiries = Map.empty<Text, AdmissionEnquiry>();
+  let teacherResources = Map.empty<Text, TeacherResource>();
 
   let initialTeachers : [Teacher] = [
     {
@@ -237,7 +253,6 @@ actor {
     date = 1678848000;
   });
 
-  // Seed sample data on initialization
   public shared ({ caller }) func seedData() : async () {
     for (teacher in initialTeachers.values()) {
       teachers.add(teacher.id, teacher);
@@ -295,5 +310,52 @@ actor {
 
   public query ({ caller }) func getAdmissionEnquiries() : async [AdmissionEnquiry] {
     admissionEnquiries.values().toArray();
+  };
+
+  func compareResourcesByUploadedAtDesc(a : TeacherResource, b : TeacherResource) : Order.Order {
+    Int.compare(b.uploadedAt, a.uploadedAt);
+  };
+
+  public shared ({ caller }) func addTeacherResource(
+    title : Text,
+    description : Text,
+    resourceType : Text,
+    fileData : Text,
+    fileName : Text,
+    externalLink : Text,
+    textContent : Text,
+    category : Text,
+  ) : async TeacherResource {
+    let id = nextResourceId.toText();
+    nextResourceId += 1;
+
+    let resource : TeacherResource = {
+      id;
+      title;
+      description;
+      resourceType;
+      fileData;
+      fileName;
+      externalLink;
+      textContent;
+      uploadedAt = Int.abs(Time.now() / 1_000_000_000);
+      category;
+    };
+
+    teacherResources.add(id, resource);
+    resource;
+  };
+
+  public query ({ caller }) func getAllTeacherResources() : async [TeacherResource] {
+    teacherResources.values().toArray().sort(compareResourcesByUploadedAtDesc);
+  };
+
+  public shared ({ caller }) func deleteTeacherResource(id : Text) : async Bool {
+    if (teacherResources.containsKey(id)) {
+      teacherResources.remove(id);
+      true;
+    } else {
+      false;
+    };
   };
 };

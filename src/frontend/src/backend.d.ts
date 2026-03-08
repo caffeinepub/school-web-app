@@ -16,6 +16,18 @@ export interface AdmissionEnquiry {
     village: string;
     phone: string;
 }
+export interface TeacherResource {
+    id: string;
+    title: string;
+    externalLink: string;
+    fileData: string;
+    description: string;
+    fileName: string;
+    resourceType: string;
+    category: string;
+    uploadedAt: bigint;
+    textContent: string;
+}
 export interface Teacher {
     id: string;
     bio: string;
@@ -44,8 +56,11 @@ export enum Subject {
     Science = "Science"
 }
 export interface backendInterface {
+    addTeacherResource(title: string, description: string, resourceType: string, fileData: string, fileName: string, externalLink: string, textContent: string, category: string): Promise<TeacherResource>;
+    deleteTeacherResource(id: string): Promise<boolean>;
     getAdmissionEnquiries(): Promise<Array<AdmissionEnquiry>>;
     getAllStudents(): Promise<Array<Student>>;
+    getAllTeacherResources(): Promise<Array<TeacherResource>>;
     getAllTeachers(): Promise<Array<Teacher>>;
     getStudentById(id: string): Promise<Student>;
     getTeacherById(id: string): Promise<Teacher>;

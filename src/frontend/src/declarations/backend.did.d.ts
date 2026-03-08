@@ -44,9 +44,27 @@ export interface Teacher {
   'phone' : string,
   'profileImageUrl' : string,
 }
+export interface TeacherResource {
+  'id' : string,
+  'title' : string,
+  'externalLink' : string,
+  'fileData' : string,
+  'description' : string,
+  'fileName' : string,
+  'resourceType' : string,
+  'category' : string,
+  'uploadedAt' : bigint,
+  'textContent' : string,
+}
 export interface _SERVICE {
+  'addTeacherResource' : ActorMethod<
+    [string, string, string, string, string, string, string, string],
+    TeacherResource
+  >,
+  'deleteTeacherResource' : ActorMethod<[string], boolean>,
   'getAdmissionEnquiries' : ActorMethod<[], Array<AdmissionEnquiry>>,
   'getAllStudents' : ActorMethod<[], Array<Student>>,
+  'getAllTeacherResources' : ActorMethod<[], Array<TeacherResource>>,
   'getAllTeachers' : ActorMethod<[], Array<Teacher>>,
   'getStudentById' : ActorMethod<[string], Student>,
   'getTeacherById' : ActorMethod<[string], Teacher>,
