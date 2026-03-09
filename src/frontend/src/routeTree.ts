@@ -8,6 +8,7 @@ import { StudentsPage } from "./pages/StudentsPage";
 import { TeacherResourcesPage } from "./pages/TeacherResourcesPage";
 import { TeachersPage } from "./pages/TeachersPage";
 
+// Root route that wraps all public pages in the full site layout
 const rootRoute = createRootRoute({
   component: RootLayout,
 });
@@ -48,7 +49,8 @@ const teacherResourcesRoute = createRoute({
   component: TeacherResourcesPage,
 });
 
-// Hidden admin route — not linked in any public UI (navbar, footer, etc.)
+// Hidden admin route — renders inside RootLayout but AdminPanelPage manages its own full-screen UI
+// Not linked anywhere in the public navbar, footer, or Teacher Resources page.
 const adminPanelRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/admin-panel",

@@ -77,6 +77,27 @@ function readFileAsBase64(file: File): Promise<string> {
   });
 }
 
+function normalizeResource(r: unknown): TeacherResource {
+  const raw = r as Record<string, unknown>;
+  const rawTs =
+    typeof raw.uploadedAt === "bigint"
+      ? raw.uploadedAt
+      : BigInt(Math.floor(Number(raw.uploadedAt ?? 0)));
+  const uploadedAt = rawTs > 10_000_000_000n ? rawTs : rawTs * 1000n;
+  return {
+    id: String(raw.id ?? ""),
+    title: String(raw.title ?? ""),
+    description: String(raw.description ?? ""),
+    resourceType: String(raw.resourceType ?? "notice") as ResourceType,
+    fileData: String(raw.fileData ?? ""),
+    fileName: String(raw.fileName ?? ""),
+    externalLink: String(raw.externalLink ?? ""),
+    textContent: String(raw.textContent ?? ""),
+    uploadedAt,
+    category: String(raw.category ?? ""),
+  };
+}
+
 function matchesCategory(
   resource: TeacherResource,
   category: Category,
@@ -834,7 +855,7 @@ function AdminLoginGate({ onUnlock }: { onUnlock: () => void }) {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 py-16"
+      className="min-h-full flex items-center justify-center px-4 py-16"
       style={{ background: "oklch(0.185 0.035 268)" }}
     >
       <div
@@ -974,54 +995,104 @@ function AdminLoginGate({ onUnlock }: { onUnlock: () => void }) {
   );
 }
 
+// ─── localStorage helpers (shared key with TeacherResourcesPage) ─
+const LS_RESOURCES_KEY = "rds-teacher-resources";
+
+function saveResourcesToStorage(resources: TeacherResource[]) {
+  try {
+    const serialized = resources.map((r) => ({
+      ...r,
+      uploadedAt: r.uploadedAt.toString(),
+    }));
+    localStorage.setItem(LS_RESOURCES_KEY, JSON.stringify(serialized));
+  } catch {
+    /* ignore quota errors */
+  }
+}
+
+function loadResourcesFromStorage(): TeacherResource[] {
+  try {
+    const raw = localStorage.getItem(LS_RESOURCES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return parsed.map((r: Record<string, unknown>) => ({
+      ...r,
+      uploadedAt: BigInt(String(r.uploadedAt ?? "0")),
+    })) as TeacherResource[];
+  } catch {
+    return [];
+  }
+}
+
 // ─── Admin Dashboard ───────────────────────────────────────────
 function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const { actor, isFetching: actorFetching } = useActor();
-  const [resources, setResources] = useState<TeacherResource[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Load from localStorage immediately so resources appear without waiting for actor.
+  const [resources, setResources] = useState<TeacherResource[]>(() =>
+    loadResourcesFromStorage(),
+  );
+  const [isLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category>("All");
 
-  // Load resources from backend once actor is ready
+  // Background sync from backend — merge into localStorage if backend has items.
   useEffect(() => {
     if (actorFetching || !actor) return;
-    setIsLoading(true);
     actor
       .getAllTeacherResources()
-      .then((res) => setResources(res as TeacherResource[]))
-      .catch(() => setResources([]))
-      .finally(() => setIsLoading(false));
+      .then((res) => {
+        const normalized = (res as unknown[]).map(normalizeResource);
+        if (normalized.length > 0) {
+          setResources(normalized);
+          saveResourcesToStorage(normalized);
+        }
+      })
+      .catch(() => {
+        // silently ignore — localStorage data already shown
+      });
   }, [actor, actorFetching]);
 
   const handleAddResource = async (
     resource: TeacherResource,
   ): Promise<void> => {
-    if (!actor) return;
-    try {
-      await actor.addTeacherResource(
-        resource.title,
-        resource.description,
-        resource.resourceType,
-        resource.fileData,
-        resource.fileName,
-        resource.externalLink,
-        resource.textContent,
-        resource.category ?? "",
-      );
-      const updated = await actor.getAllTeacherResources();
-      setResources(updated as TeacherResource[]);
-    } catch {
-      // handle error silently
+    // 1. Save to localStorage and update UI immediately.
+    const updated = [resource, ...resources];
+    setResources(updated);
+    saveResourcesToStorage(updated);
+
+    // 2. Background sync to backend — ignore failures.
+    if (actor) {
+      try {
+        await actor.addTeacherResource(
+          resource.title,
+          resource.description,
+          resource.resourceType,
+          resource.fileData,
+          resource.fileName,
+          resource.externalLink,
+          resource.textContent,
+          resource.category ?? "",
+        );
+      } catch {
+        // silently ignore
+      }
     }
   };
 
   const handleDeleteResource = async (id: string) => {
-    if (!actor) return;
-    try {
-      await actor.deleteTeacherResource(id);
-      setResources((prev) => prev.filter((r) => r.id !== id));
-    } catch {
-      // handle error silently
+    // 1. Remove from localStorage and update UI immediately.
+    const updated = resources.filter((r) => r.id !== id);
+    setResources(updated);
+    saveResourcesToStorage(updated);
+
+    // 2. Background sync to backend — ignore failures.
+    if (actor) {
+      try {
+        await actor.deleteTeacherResource(id);
+      } catch {
+        // silently ignore
+      }
     }
   };
 
@@ -1036,7 +1107,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-full"
       style={{ background: "oklch(0.185 0.035 268)" }}
     >
       {/* Header */}
@@ -1235,18 +1306,23 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 }
 
 // ─── Main Admin Panel Page ─────────────────────────────────────
-// This page is only accessible via the hidden /admin-panel route.
-// It is NOT linked anywhere in the public navbar, footer, or any visible UI.
+// Accessible only via the hidden /admin-panel route.
+// NOT linked anywhere in the public navbar, footer, or any visible UI.
+// Renders as a fixed full-screen overlay so the school layout (navbar/footer)
+// is completely hidden from the admin interface.
 export function AdminPanelPage() {
-  const [authenticated, setAuthenticated] = useState<boolean>(() => {
-    try {
-      return sessionStorage.getItem(ADMIN_SESSION_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
+  // Always start unauthenticated — no session persistence so login is required
+  // on every visit for security.
+  const [authenticated, setAuthenticated] = useState<boolean>(false);
 
-  const handleUnlock = () => setAuthenticated(true);
+  const handleUnlock = () => {
+    setAuthenticated(true);
+    try {
+      sessionStorage.setItem(ADMIN_SESSION_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  };
 
   const handleLogout = () => {
     setAuthenticated(false);
@@ -1257,9 +1333,17 @@ export function AdminPanelPage() {
     }
   };
 
-  if (!authenticated) {
-    return <AdminLoginGate onUnlock={handleUnlock} />;
-  }
-
-  return <AdminDashboard onLogout={handleLogout} />;
+  return (
+    // Fixed full-screen overlay — covers the school navbar and layout entirely
+    <div
+      className="fixed inset-0 z-[200] overflow-y-auto"
+      style={{ background: "oklch(0.185 0.035 268)" }}
+    >
+      {authenticated ? (
+        <AdminDashboard onLogout={handleLogout} />
+      ) : (
+        <AdminLoginGate onUnlock={handleUnlock} />
+      )}
+    </div>
+  );
 }

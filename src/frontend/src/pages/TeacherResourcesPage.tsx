@@ -6,6 +6,7 @@ import {
   ExternalLink,
   Eye,
   FileText,
+  FolderOpen,
   Image,
   Link2,
   Lock,
@@ -1258,6 +1259,61 @@ export function AdminPrompt({
   );
 }
 
+// ─── localStorage helpers ─────────────────────────────────────
+const LS_RESOURCES_KEY = "rds-teacher-resources";
+
+function saveResourcesToStorage(resources: TeacherResource[]) {
+  try {
+    const serialized = resources.map((r) => ({
+      ...r,
+      uploadedAt: r.uploadedAt.toString(),
+    }));
+    localStorage.setItem(LS_RESOURCES_KEY, JSON.stringify(serialized));
+  } catch {
+    /* ignore quota errors */
+  }
+}
+
+function loadResourcesFromStorage(): TeacherResource[] {
+  try {
+    const raw = localStorage.getItem(LS_RESOURCES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return parsed.map((r: Record<string, unknown>) => ({
+      ...r,
+      uploadedAt: BigInt(String(r.uploadedAt ?? "0")),
+    })) as TeacherResource[];
+  } catch {
+    return [];
+  }
+}
+
+// ─── Normalize backend resource (handles bigint timestamps) ──────
+function normalizeResource(r: unknown): TeacherResource {
+  const raw = r as Record<string, unknown>;
+  // Backend stores uploadedAt as Int.abs(Time.now() / 1_000_000_000) = seconds.
+  // Convert to milliseconds for new Date(Number(ts)).
+  // If value is already in ms range (>= year 2000 in ms = 946684800000),
+  // don't multiply again. Threshold: if > 10^12 it's already ms.
+  const rawTs =
+    typeof raw.uploadedAt === "bigint"
+      ? raw.uploadedAt
+      : BigInt(Math.floor(Number(raw.uploadedAt ?? 0)));
+  const uploadedAt = rawTs > 10_000_000_000n ? rawTs : rawTs * 1000n;
+  return {
+    id: String(raw.id ?? ""),
+    title: String(raw.title ?? ""),
+    description: String(raw.description ?? ""),
+    resourceType: String(raw.resourceType ?? "notice") as ResourceType,
+    fileData: String(raw.fileData ?? ""),
+    fileName: String(raw.fileName ?? ""),
+    externalLink: String(raw.externalLink ?? ""),
+    textContent: String(raw.textContent ?? ""),
+    uploadedAt,
+    category: String(raw.category ?? ""),
+  };
+}
+
 // ─── Notice Board (shown to teachers after password) ──────────
 function NoticeBoardView({
   adminMode,
@@ -1265,54 +1321,81 @@ function NoticeBoardView({
   adminMode: boolean;
 }) {
   const { actor, isFetching: actorFetching } = useActor();
-  const [resources, setResources] = useState<TeacherResource[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // 1. Load from localStorage synchronously so resources appear instantly.
+  const [resources, setResources] = useState<TeacherResource[]>(() =>
+    loadResourcesFromStorage(),
+  );
+  // Never show a loading spinner or error — localStorage is always available.
+  const [isLoading] = useState(false);
+  const [loadError] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category>("All");
 
-  // Load resources from backend once actor is ready — works for all users including incognito
+  // Background sync: if the actor becomes available, pull from backend and
+  // merge any new items into localStorage. Failures are silently ignored.
+  const loadResources = useCallback(async (actorInstance: typeof actor) => {
+    if (!actorInstance) return;
+    try {
+      const res = await actorInstance.getAllTeacherResources();
+      const normalized = (res as unknown[]).map(normalizeResource);
+      if (normalized.length > 0) {
+        setResources(normalized);
+        saveResourcesToStorage(normalized);
+      }
+    } catch {
+      // Backend unavailable — localStorage data already shown, no error needed
+    }
+  }, []);
+
   useEffect(() => {
     if (actorFetching || !actor) return;
-    setIsLoading(true);
-    actor
-      .getAllTeacherResources()
-      .then((res) => setResources(res as TeacherResource[]))
-      .catch(() => setResources([]))
-      .finally(() => setIsLoading(false));
-  }, [actor, actorFetching]);
+    loadResources(actor);
+  }, [actor, actorFetching, loadResources]);
 
   const handleAddResource = async (
     resource: TeacherResource,
   ): Promise<void> => {
-    if (!actor) return;
-    try {
-      await actor.addTeacherResource(
-        resource.title,
-        resource.description,
-        resource.resourceType,
-        resource.fileData,
-        resource.fileName,
-        resource.externalLink,
-        resource.textContent,
-        resource.category ?? "",
-      );
-      const updated = await actor.getAllTeacherResources();
-      setResources(updated as TeacherResource[]);
-      setSuccessMsg(`"${resource.title}" added successfully!`);
-      setTimeout(() => setSuccessMsg(""), 3500);
-    } catch {
-      // handle error silently
+    // 1. Save to localStorage and update UI immediately.
+    const updated = [resource, ...resources];
+    setResources(updated);
+    saveResourcesToStorage(updated);
+    setSuccessMsg(`"${resource.title}" added successfully!`);
+    setTimeout(() => setSuccessMsg(""), 3500);
+
+    // 2. Background sync to backend — ignore failures.
+    if (actor) {
+      try {
+        await actor.addTeacherResource(
+          resource.title,
+          resource.description,
+          resource.resourceType,
+          resource.fileData,
+          resource.fileName,
+          resource.externalLink,
+          resource.textContent,
+          resource.category ?? "",
+        );
+      } catch {
+        // silently ignore
+      }
     }
   };
 
   const handleDeleteResource = async (id: string) => {
-    if (!actor) return;
-    try {
-      await actor.deleteTeacherResource(id);
-      setResources((prev) => prev.filter((r) => r.id !== id));
-    } catch {
-      // handle error silently
+    // 1. Remove from localStorage and update UI immediately.
+    const updated = resources.filter((r) => r.id !== id);
+    setResources(updated);
+    saveResourcesToStorage(updated);
+
+    // 2. Background sync to backend — ignore failures.
+    if (actor) {
+      try {
+        await actor.deleteTeacherResource(id);
+      } catch {
+        // silently ignore
+      }
     }
   };
 
@@ -1511,7 +1594,7 @@ function NoticeBoardView({
           </div>
 
           {/* ── Category filter buttons ─────────────────────── */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
             {CATEGORIES.map((cat) => {
               const isActive = activeCategory === cat;
               return (
@@ -1542,6 +1625,31 @@ function NoticeBoardView({
             })}
           </div>
 
+          {/* ── Google Drive Resource Library button ────────── */}
+          <div className="flex justify-center mb-10">
+            <a
+              href="https://drive.google.com/drive/folders/17cbuJXEgi7AiVOj9G4iWmO12gHH208nK"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-ocid="teacher-resources.primary_button"
+              className="inline-flex items-center gap-3 px-7 py-3.5 rounded-xl font-semibold font-body text-base transition-all duration-200 hover:scale-105 hover:shadow-2xl"
+              style={{
+                background:
+                  "linear-gradient(135deg, oklch(0.78 0.168 85), oklch(0.68 0.168 75))",
+                color: "oklch(0.12 0.04 265)",
+                boxShadow:
+                  "0 4px 24px oklch(0.78 0.168 85 / 0.40), 0 1px 4px oklch(0 0 0 / 0.2)",
+                textDecoration: "none",
+                border: "1.5px solid oklch(0.88 0.168 85 / 0.5)",
+                letterSpacing: "0.01em",
+              }}
+            >
+              <FolderOpen className="w-5 h-5 shrink-0" />
+              Open Full Resource Library
+              <ExternalLink className="w-4 h-4 shrink-0 opacity-75" />
+            </a>
+          </div>
+
           {/* Resources grid / loading / empty state */}
           {isLoading ? (
             <div
@@ -1566,6 +1674,49 @@ function NoticeBoardView({
               >
                 Loading resources...
               </p>
+            </div>
+          ) : loadError ? (
+            <div
+              data-ocid="teacher-resources.error_state"
+              className="text-center py-20"
+            >
+              <div
+                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5"
+                style={{
+                  background: "oklch(0.52 0.15 25 / 0.1)",
+                  border: "1px solid oklch(0.52 0.15 25 / 0.3)",
+                }}
+              >
+                <AlertCircle
+                  className="w-7 h-7"
+                  style={{ color: "oklch(0.75 0.12 25)" }}
+                />
+              </div>
+              <h3
+                className="font-display font-semibold text-xl mb-2"
+                style={{ color: "oklch(0.72 0.04 265)" }}
+              >
+                Could not load resources
+              </h3>
+              <p
+                className="font-body text-sm mb-4"
+                style={{ color: "oklch(0.55 0.04 265)" }}
+              >
+                There was a problem connecting to the server.
+              </p>
+              <button
+                type="button"
+                data-ocid="teacher-resources.secondary_button"
+                onClick={() => loadResources(actor)}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-body font-semibold transition-all hover:scale-105"
+                style={{
+                  background: "oklch(0.78 0.168 85)",
+                  color: "oklch(0.15 0.04 265)",
+                  boxShadow: "0 2px 16px oklch(0.78 0.168 85 / 0.3)",
+                }}
+              >
+                Try Again
+              </button>
             </div>
           ) : resources.length === 0 ? (
             <div
