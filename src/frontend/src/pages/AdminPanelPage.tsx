@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AdminDatesheetUpload } from "../components/ExamCornerButton";
 import { useActor } from "../hooks/useActor";
 
 // ─── Types (shared with TeacherResourcesPage) ─────────────────
@@ -1178,6 +1179,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       {/* Content */}
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
+          {/* Datesheet upload */}
+          <AdminDatesheetUpload />
           {/* Upload panel */}
           <AdminUploadPanel onAdd={handleAddResource} />
 

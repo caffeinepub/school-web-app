@@ -1322,35 +1322,47 @@ function NoticeBoardView({
 }) {
   const { actor, isFetching: actorFetching } = useActor();
 
-  // 1. Load from localStorage synchronously so resources appear instantly.
+  // Start with localStorage as instant cache; backend is source of truth.
   const [resources, setResources] = useState<TeacherResource[]>(() =>
     loadResourcesFromStorage(),
   );
-  // Never show a loading spinner or error — localStorage is always available.
-  const [isLoading] = useState(false);
-  const [loadError] = useState(false);
+  // Show loading while actor is initialising so teachers don't see a false
+  // "No resources" state before the backend fetch completes.
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category>("All");
 
-  // Background sync: if the actor becomes available, pull from backend and
-  // merge any new items into localStorage. Failures are silently ignored.
+  // Primary load: fetch from backend canister (stable storage, cross-device).
+  // Falls back to whatever is already in localStorage if the call fails.
   const loadResources = useCallback(async (actorInstance: typeof actor) => {
     if (!actorInstance) return;
     try {
       const res = await actorInstance.getAllTeacherResources();
       const normalized = (res as unknown[]).map(normalizeResource);
-      if (normalized.length > 0) {
-        setResources(normalized);
-        saveResourcesToStorage(normalized);
-      }
+      setResources(normalized);
+      saveResourcesToStorage(normalized);
+      setLoadError(false);
     } catch {
-      // Backend unavailable — localStorage data already shown, no error needed
+      // Backend unavailable — keep localStorage data, show error only if
+      // localStorage is also empty so teachers always see something.
+      const cached = loadResourcesFromStorage();
+      if (cached.length === 0) setLoadError(true);
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (actorFetching || !actor) return;
+    if (actorFetching) return;
+    if (!actor) {
+      // Actor failed to initialize — fall back to localStorage
+      setIsLoading(false);
+      const cached = loadResourcesFromStorage();
+      if (cached.length === 0) setLoadError(true);
+      return;
+    }
     loadResources(actor);
   }, [actor, actorFetching, loadResources]);
 
@@ -1812,11 +1824,10 @@ function NoticeBoardView({
 // - It does NOT auto-appear on the home page or any other page.
 export function TeacherResourcesPage() {
   // Always start locked — NEVER read from sessionStorage or localStorage.
-  // Any old session keys are cleared immediately to prevent stale unlock state.
   const [unlocked, setUnlocked] = useState<boolean>(false);
+  const [adminMode, setAdminMode] = useState<boolean>(false);
+  const [showAdminPrompt, setShowAdminPrompt] = useState<boolean>(false);
 
-  // On mount, clear any legacy sessionStorage keys that old versions may have
-  // written, so the page can never remain unlocked across reloads.
   useEffect(() => {
     try {
       sessionStorage.removeItem("rds-teacher-unlocked");
@@ -1828,16 +1839,69 @@ export function TeacherResourcesPage() {
   }, []);
 
   const handleUnlock = () => {
-    // NoticeBoardView fetches from backend on mount, so resources are always
-    // up-to-date for every user including incognito visitors.
     setUnlocked(true);
   };
 
-  // ── Locked view: show password gate ───────────────────────
+  const handleAdminUnlock = () => {
+    setAdminMode(true);
+    setShowAdminPrompt(false);
+  };
+
+  const handleAdminExit = () => {
+    setAdminMode(false);
+  };
+
   if (!unlocked) {
     return <PasswordGate onUnlock={handleUnlock} />;
   }
 
-  // ── Unlocked view: show notice board (no admin controls, no admin button) ─
-  return <NoticeBoardView adminMode={false} />;
+  return (
+    <div className="relative">
+      {/* Hidden Admin Upload button — only visible to site owner (no link in UI) */}
+      <div className="absolute top-4 right-4 z-20">
+        {adminMode ? (
+          <button
+            type="button"
+            data-ocid="teacher-resources.secondary_button"
+            onClick={handleAdminExit}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-body font-semibold transition-all hover:scale-105"
+            style={{
+              background: "oklch(0.52 0.15 25 / 0.12)",
+              border: "1px solid oklch(0.52 0.15 25 / 0.35)",
+              color: "oklch(0.75 0.12 25)",
+            }}
+            title="Exit Admin Mode"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            Exit Admin
+          </button>
+        ) : (
+          <button
+            type="button"
+            data-ocid="teacher-resources.open_modal_button"
+            onClick={() => setShowAdminPrompt(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-body font-semibold transition-all hover:scale-105 opacity-40 hover:opacity-100"
+            style={{
+              background: "oklch(0.78 0.168 85 / 0.08)",
+              border: "1px solid oklch(0.78 0.168 85 / 0.25)",
+              color: "oklch(0.78 0.168 85 / 0.7)",
+            }}
+            title="Admin Upload"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            Admin Upload
+          </button>
+        )}
+      </div>
+
+      {showAdminPrompt && (
+        <AdminPrompt
+          onUnlock={handleAdminUnlock}
+          onClose={() => setShowAdminPrompt(false)}
+        />
+      )}
+
+      <NoticeBoardView adminMode={adminMode} />
+    </div>
+  );
 }

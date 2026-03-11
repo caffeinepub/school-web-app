@@ -66,4 +66,6 @@ export interface backendInterface {
     getTeacherById(id: string): Promise<Teacher>;
     seedData(): Promise<void>;
     submitAdmissionEnquiry(studentName: string, fatherName: string, village: string, admissionClass: string, phone: string): Promise<AdmissionEnquiry>;
+    uploadDatesheet(data: string, name: string): Promise<boolean>;
+    getDatesheet(): Promise<[string, string]>;
 }

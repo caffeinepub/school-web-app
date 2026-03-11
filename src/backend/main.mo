@@ -66,12 +66,35 @@ actor {
   var nextTeacherId = 7;
   var nextStudentId = 13;
   var nextAdmissionEnquiryId = 1;
-  var nextResourceId = 1;
+  var nextResourceId : Nat = 1;
+
+  // Stable storage for teacher resources — survives canister upgrades
+  stable var _stableTeacherResources : [TeacherResource] = [];
+  stable var _stableNextResourceId : Nat = 1;
+
+  // Stable storage for exam datesheet
+  stable var _datesheetData : Text = "";
+  stable var _datesheetName : Text = "";
 
   let teachers = Map.empty<Text, Teacher>();
   let students = Map.empty<Text, Student>();
   let admissionEnquiries = Map.empty<Text, AdmissionEnquiry>();
   let teacherResources = Map.empty<Text, TeacherResource>();
+
+  // Persist teacher resources to stable storage before upgrade
+  system func preupgrade() {
+    _stableTeacherResources := teacherResources.values().toArray();
+    _stableNextResourceId := nextResourceId;
+    // _datesheetData and _datesheetName are already stable
+  };
+
+  // Restore teacher resources from stable storage after upgrade
+  system func postupgrade() {
+    for (r in _stableTeacherResources.vals()) {
+      teacherResources.add(r.id, r);
+    };
+    nextResourceId := _stableNextResourceId;
+  };
 
   let initialTeachers : [Teacher] = [
     {
@@ -357,5 +380,19 @@ actor {
     } else {
       false;
     };
+  };
+
+  // ── Exam Datesheet ──────────────────────────────────────────
+  // Stores the exam datesheet PDF (base64 data URL) permanently.
+  // uploadDatesheet replaces the previous file; getDatesheet retrieves it.
+
+  public shared ({ caller }) func uploadDatesheet(data : Text, name : Text) : async Bool {
+    _datesheetData := data;
+    _datesheetName := name;
+    true;
+  };
+
+  public query ({ caller }) func getDatesheet() : async (Text, Text) {
+    (_datesheetData, _datesheetName);
   };
 };
