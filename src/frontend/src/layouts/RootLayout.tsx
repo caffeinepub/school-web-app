@@ -15,6 +15,7 @@ import type React from "react";
 import { AdmissionPopup } from "../components/AdmissionPopup";
 import { AnnouncementBar } from "../components/AnnouncementBar";
 import { ExamCornerButton } from "../components/ExamCornerButton";
+import { LikeButton } from "../components/LikeButton";
 import {
   useAllStudents,
   useAllTeachers,
@@ -518,6 +519,8 @@ export function RootLayout() {
 
       {/* Floating buttons stack */}
       <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+        {/* Like button - above Exam Corner */}
+        <LikeButton />
         {/* Exam Corner button + popup */}
         <div className="relative">
           <ExamCornerButton />

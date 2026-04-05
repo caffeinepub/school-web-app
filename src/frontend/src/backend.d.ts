@@ -68,4 +68,6 @@ export interface backendInterface {
     submitAdmissionEnquiry(studentName: string, fatherName: string, village: string, admissionClass: string, phone: string): Promise<AdmissionEnquiry>;
     uploadDatesheet(data: string, name: string): Promise<boolean>;
     getDatesheet(): Promise<[string, string]>;
+    addLike(): Promise<bigint>;
+    getLikeCount(): Promise<bigint>;
 }

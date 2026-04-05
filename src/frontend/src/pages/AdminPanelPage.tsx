@@ -21,6 +21,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminDatesheetUpload } from "../components/ExamCornerButton";
 import { useActor } from "../hooks/useActor";
+import { getAnalytics } from "../lib/firebase";
 
 // ─── Types (shared with TeacherResourcesPage) ─────────────────
 type ResourceType =
@@ -1034,6 +1035,17 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     loadResourcesFromStorage(),
   );
   const [isLoading] = useState(false);
+  const [analytics, setAnalytics] = useState<{
+    likes: number;
+    visitors: number;
+  } | null>(null);
+
+  // Load Firebase analytics for admin view
+  useEffect(() => {
+    getAnalytics()
+      .then(setAnalytics)
+      .catch(() => {});
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category>("All");
 
@@ -1179,6 +1191,67 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
       {/* Content */}
       <div className="py-12 px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
+          {/* Analytics Stats */}
+          {analytics && (
+            <div
+              className="mb-8 p-5 rounded-xl flex gap-8 items-center"
+              style={{
+                background: "oklch(0.20 0.04 265)",
+                border: "1px solid oklch(0.78 0.168 85 / 0.25)",
+                boxShadow: "0 2px 12px oklch(0 0 0 / 0.3)",
+              }}
+            >
+              <div className="flex flex-col items-center gap-1">
+                <span
+                  className="text-3xl font-bold font-display"
+                  style={{ color: "oklch(0.88 0.168 85)" }}
+                >
+                  {analytics.likes}
+                </span>
+                <span
+                  className="text-xs font-body uppercase tracking-widest"
+                  style={{ color: "oklch(0.62 0.04 265)" }}
+                >
+                  Total Likes ❤️
+                </span>
+              </div>
+              <div
+                className="w-px self-stretch"
+                style={{ background: "oklch(0.78 0.168 85 / 0.2)" }}
+              />
+              <div className="flex flex-col items-center gap-1">
+                <span
+                  className="text-3xl font-bold font-display"
+                  style={{ color: "oklch(0.88 0.168 85)" }}
+                >
+                  {analytics.visitors}
+                </span>
+                <span
+                  className="text-xs font-body uppercase tracking-widest"
+                  style={{ color: "oklch(0.62 0.04 265)" }}
+                >
+                  Total Visitors 👁️
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() =>
+                  getAnalytics()
+                    .then(setAnalytics)
+                    .catch(() => {})
+                }
+                className="ml-auto text-xs px-3 py-1.5 rounded-lg font-body"
+                style={{
+                  background: "oklch(0.78 0.168 85 / 0.12)",
+                  border: "1px solid oklch(0.78 0.168 85 / 0.3)",
+                  color: "oklch(0.78 0.168 85)",
+                  cursor: "pointer",
+                }}
+              >
+                Refresh
+              </button>
+            </div>
+          )}
           {/* Datesheet upload */}
           <AdminDatesheetUpload />
           {/* Upload panel */}

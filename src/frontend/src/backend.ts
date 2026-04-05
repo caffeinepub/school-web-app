@@ -148,6 +148,10 @@ export interface backendInterface {
     getTeacherById(id: string): Promise<Teacher>;
     seedData(): Promise<void>;
     submitAdmissionEnquiry(studentName: string, fatherName: string, village: string, admissionClass: string, phone: string): Promise<AdmissionEnquiry>;
+    uploadDatesheet(data: string, name: string): Promise<boolean>;
+    getDatesheet(): Promise<[string, string]>;
+    addLike(): Promise<bigint>;
+    getLikeCount(): Promise<bigint>;
 }
 import type { Subject as _Subject, Teacher as _Teacher } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -291,6 +295,22 @@ export class Backend implements backendInterface {
             const result = await this.actor.submitAdmissionEnquiry(arg0, arg1, arg2, arg3, arg4);
             return result;
         }
+    }
+    async uploadDatesheet(data: string, name: string): Promise<boolean> {
+        const result = await this.actor.uploadDatesheet(data, name);
+        return result;
+    }
+    async getDatesheet(): Promise<[string, string]> {
+        const result = await this.actor.getDatesheet();
+        return result as [string, string];
+    }
+    async addLike(): Promise<bigint> {
+        const result = await this.actor.addLike();
+        return result as bigint;
+    }
+    async getLikeCount(): Promise<bigint> {
+        const result = await this.actor.getLikeCount();
+        return result as bigint;
     }
 }
 function from_candid_Subject_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Subject): Subject {

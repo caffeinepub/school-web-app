@@ -317,6 +317,14 @@ export function AboutPage() {
                 src: "/assets/uploads/WhatsApp-Image-2026-03-03-at-9.18.02-PM-2--10.jpeg",
                 alt: "R D S Meena Memorial Public School admission poster",
               },
+              {
+                src: "/assets/uploads/WhatsApp-Image-2026-03-15-at-11.00.01-PM-1.jpeg",
+                alt: "Republic Day celebration at R D S school - students and teachers",
+              },
+              {
+                src: "/assets/uploads/WhatsApp-Image-2026-03-15-at-11.00.02-PM-2.jpeg",
+                alt: "Republic Day group photo at R D S school",
+              },
             ].map((img) => (
               <ImageLightbox key={img.src} src={img.src} alt={img.alt}>
                 <div
