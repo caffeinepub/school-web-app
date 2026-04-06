@@ -39,7 +39,7 @@ const NAV_LINKS = [
   },
 ];
 
-// ── Theme hook ──────────────────────────────────────────────
+// ── Theme hook ──────────────────────────────
 function useTheme() {
   const [isLight, setIsLight] = useState<boolean>(() => {
     try {
@@ -67,6 +67,39 @@ function useTheme() {
 
   const toggle = () => setIsLight((v) => !v);
   return { isLight, toggle };
+}
+
+// ── Scroll-aware offset hook ────────────────────────
+// When user is near the footer, lifts buttons up to avoid overlap
+function useFloatingButtonOffset() {
+  const [extraOffset, setExtraOffset] = useState(0);
+
+  useEffect(() => {
+    const FOOTER_CLEARANCE = 80; // px of footer we want to stay clear of
+
+    function update() {
+      const scrollBottom =
+        document.documentElement.scrollHeight -
+        window.scrollY -
+        window.innerHeight;
+      // As user gets within FOOTER_CLEARANCE px of the bottom, push buttons up
+      if (scrollBottom < FOOTER_CLEARANCE) {
+        setExtraOffset(FOOTER_CLEARANCE - scrollBottom);
+      } else {
+        setExtraOffset(0);
+      }
+    }
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  return extraOffset;
 }
 
 function Navbar() {
@@ -505,6 +538,10 @@ export function RootLayout() {
     null,
   ) as React.MutableRefObject<(() => void) | null>;
 
+  // Scroll-aware offset: lifts floating buttons when near the footer
+  const extraOffset = useFloatingButtonOffset();
+  const floatingBottom = 24 + extraOffset; // 24px base = bottom-6
+
   return (
     <div className="w-full min-h-screen flex flex-col bg-background text-foreground">
       <DataInitializer />
@@ -517,8 +554,14 @@ export function RootLayout() {
       </main>
       <Footer />
 
-      {/* Floating buttons stack */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+      {/* Floating buttons stack — scroll-aware bottom position */}
+      <div
+        className="fixed right-6 z-40 flex flex-col items-end gap-3"
+        style={{
+          bottom: `${floatingBottom}px`,
+          transition: "bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1)",
+        }}
+      >
         {/* Like button - above Exam Corner */}
         <LikeButton />
         {/* Exam Corner button + popup */}

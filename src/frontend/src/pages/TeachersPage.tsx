@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { ImageLightbox } from "../components/ImageLightbox";
 
 const ASSISTANT_TEACHERS = [
@@ -19,7 +20,6 @@ const ASSISTANT_TEACHERS = [
   "Ritu Mam",
 ] as const;
 
-// Order: Owner → Principal → Management (as requested)
 const LEADERSHIP = [
   { name: "Mr. Jitendra Pal Meena", role: "Owner" },
   { name: "Mr. Rohit Tripathi", role: "Principal" },
@@ -35,6 +35,398 @@ function getInitials(name: string) {
     .join("");
 }
 
+// ── Teacher Application Form ─────────────────────────────────
+function TeacherApplicationForm() {
+  const [formData, setFormData] = useState({
+    fullName: "",
+    phone: "",
+    subject: "",
+    qualification: "",
+    experience: "",
+  });
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const gold = "oklch(0.78 0.168 85)";
+  const cardBg = "oklch(0.240 0.040 265)";
+  const inputBg = "oklch(0.20 0.038 266)";
+  const borderColor = "oklch(0.38 0.052 265 / 0.5)";
+  const textMain = "oklch(0.92 0.015 80)";
+  const textMuted = "oklch(0.70 0.04 265)";
+
+  const isFormFilled = Object.values(formData).some((v) => v.trim() !== "");
+  const canSubmit = isFormFilled || resumeFile !== null;
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setResumeFile(file);
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!canSubmit) {
+      setSubmitError("Please fill the form or upload your resume.");
+      return;
+    }
+    setSubmitError("");
+
+    const lines: string[] = [
+      "*New Teacher Application — R D S Meena Memorial School*",
+    ];
+    if (formData.fullName.trim())
+      lines.push(`Name: ${formData.fullName.trim()}`);
+    if (formData.phone.trim()) lines.push(`Phone: ${formData.phone.trim()}`);
+    if (formData.subject.trim())
+      lines.push(`Subject: ${formData.subject.trim()}`);
+    if (formData.qualification.trim())
+      lines.push(`Qualification: ${formData.qualification.trim()}`);
+    if (formData.experience.trim())
+      lines.push(`Experience: ${formData.experience.trim()}`);
+    if (resumeFile)
+      lines.push(`Resume: ${resumeFile.name} (attached separately)`);
+
+    const msg = encodeURIComponent(lines.join("\n"));
+    window.open(`https://wa.me/916395297305?text=${msg}`, "_blank");
+    setSubmitted(true);
+  }
+
+  const inputStyle: React.CSSProperties = {
+    background: inputBg,
+    border: "1px solid oklch(0.38 0.052 265 / 0.5)",
+    borderRadius: "0.625rem",
+    color: textMain,
+    padding: "0.625rem 0.875rem",
+    fontSize: "0.875rem",
+    width: "100%",
+    outline: "none",
+    transition: "border-color 0.2s",
+    fontFamily: "inherit",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    color: textMuted,
+    fontSize: "0.75rem",
+    fontWeight: 600,
+    textTransform: "uppercase",
+    letterSpacing: "0.08em",
+    display: "block",
+    marginBottom: "0.35rem",
+  };
+
+  if (submitted) {
+    return (
+      <div
+        className="rounded-2xl p-8 text-center"
+        style={{
+          background: cardBg,
+          border: "1px solid oklch(0.78 0.168 85 / 0.3)",
+        }}
+      >
+        <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>✅</div>
+        <h3
+          className="font-display font-bold text-xl mb-2"
+          style={{ color: gold }}
+        >
+          Application Sent!
+        </h3>
+        <p className="text-sm" style={{ color: textMuted }}>
+          Thank you for applying. We will contact you soon.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setSubmitted(false);
+            setFormData({
+              fullName: "",
+              phone: "",
+              subject: "",
+              qualification: "",
+              experience: "",
+            });
+            setResumeFile(null);
+          }}
+          className="mt-6 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-105"
+          style={{
+            background:
+              "linear-gradient(135deg, oklch(0.65 0.168 85), oklch(0.72 0.168 85))",
+            color: "oklch(0.12 0.03 260)",
+          }}
+        >
+          Submit Another
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="rounded-2xl p-6 sm:p-8"
+      style={{
+        background: cardBg,
+        border: "1px solid oklch(0.78 0.168 85 / 0.25)",
+        boxShadow: "0 8px 32px oklch(0 0 0 / 0.2)",
+      }}
+    >
+      {/* Header */}
+      <div className="mb-6">
+        <p
+          className="text-xs uppercase tracking-[0.25em] font-semibold font-body mb-1"
+          style={{ color: gold }}
+        >
+          Join Our Team
+        </p>
+        <h2
+          className="font-display font-bold text-2xl sm:text-3xl"
+          style={{ color: textMain }}
+        >
+          Teacher Application
+        </h2>
+        <p className="mt-2 text-sm" style={{ color: textMuted }}>
+          You can either fill the form or upload your resume.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Full Name */}
+        <div>
+          <label htmlFor="app-fullName" style={labelStyle}>
+            Full Name
+          </label>
+          <input
+            id="app-fullName"
+            type="text"
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleChange}
+            placeholder="Your full name"
+            style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = gold;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = borderColor;
+            }}
+          />
+        </div>
+
+        {/* Phone */}
+        <div>
+          <label htmlFor="app-phone" style={labelStyle}>
+            Phone Number
+          </label>
+          <input
+            id="app-phone"
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="e.g. 9876543210"
+            style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = gold;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = borderColor;
+            }}
+          />
+        </div>
+
+        {/* Subject */}
+        <div>
+          <label htmlFor="app-subject" style={labelStyle}>
+            Subject
+          </label>
+          <input
+            id="app-subject"
+            type="text"
+            name="subject"
+            value={formData.subject}
+            onChange={handleChange}
+            placeholder="e.g. Mathematics, Science, English"
+            style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = gold;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = borderColor;
+            }}
+          />
+        </div>
+
+        {/* Qualification */}
+        <div>
+          <label htmlFor="app-qualification" style={labelStyle}>
+            Qualification
+          </label>
+          <input
+            id="app-qualification"
+            type="text"
+            name="qualification"
+            value={formData.qualification}
+            onChange={handleChange}
+            placeholder="e.g. B.Ed, M.Sc, B.A."
+            style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = gold;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = borderColor;
+            }}
+          />
+        </div>
+
+        {/* Experience */}
+        <div>
+          <label htmlFor="app-experience" style={labelStyle}>
+            Experience
+          </label>
+          <input
+            id="app-experience"
+            type="text"
+            name="experience"
+            value={formData.experience}
+            onChange={handleChange}
+            placeholder="e.g. 3 years, Fresher"
+            style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = gold;
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = borderColor;
+            }}
+          />
+        </div>
+
+        {/* Resume Upload */}
+        <div
+          style={{
+            borderTop: "1px solid oklch(0.38 0.052 265 / 0.4)",
+            paddingTop: "1rem",
+          }}
+        >
+          <label htmlFor="app-resume" style={labelStyle}>
+            Upload Resume (PDF or Image)
+          </label>
+          <button
+            type="button"
+            className="w-full rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 cursor-pointer transition-all text-left"
+            style={{
+              background: inputBg,
+              border: "1px dashed oklch(0.78 0.168 85 / 0.35)",
+            }}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <span style={{ fontSize: "1.5rem" }}>📎</span>
+            <div className="flex-1">
+              {resumeFile ? (
+                <>
+                  <p className="text-sm font-medium" style={{ color: gold }}>
+                    {resumeFile.name}
+                  </p>
+                  <p className="text-xs" style={{ color: textMuted }}>
+                    {(resumeFile.size / 1024).toFixed(0)} KB — Click to change
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: textMain }}
+                  >
+                    Click to upload resume
+                  </p>
+                  <p className="text-xs" style={{ color: textMuted }}>
+                    PDF, JPG, PNG accepted
+                  </p>
+                </>
+              )}
+            </div>
+          </button>
+          <input
+            ref={fileInputRef}
+            id="app-resume"
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </div>
+
+        {submitError && (
+          <p className="text-sm" style={{ color: "oklch(0.65 0.2 25)" }}>
+            {submitError}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            background: canSubmit
+              ? "linear-gradient(135deg, oklch(0.65 0.168 85), oklch(0.72 0.168 85))"
+              : "oklch(0.30 0.04 265)",
+            color: canSubmit ? "oklch(0.12 0.03 260)" : textMuted,
+            border: canSubmit
+              ? "none"
+              : "1px solid oklch(0.38 0.052 265 / 0.5)",
+          }}
+        >
+          Submit Application
+        </button>
+      </form>
+
+      {/* Gmail / WhatsApp contact options */}
+      <div
+        style={{
+          marginTop: "1.5rem",
+          borderTop: "1px solid oklch(0.38 0.052 265 / 0.4)",
+          paddingTop: "1.25rem",
+        }}
+      >
+        <p
+          className="text-xs text-center font-semibold uppercase tracking-widest mb-3"
+          style={{ color: textMuted }}
+        >
+          Or contact us directly
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <a
+            href="mailto:dipanshu6395297305@gmail.com?subject=Teacher Application"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02]"
+            style={{
+              background: "oklch(0.22 0.05 260)",
+              border: "1px solid oklch(0.38 0.052 265 / 0.5)",
+              color: textMain,
+            }}
+          >
+            <span>📧</span> Gmail
+          </a>
+          <a
+            href="https://wa.me/916395297305?text=Hello%2C%20I%20want%20to%20apply%20for%20a%20teaching%20position."
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-all hover:scale-[1.02]"
+            style={{
+              background: "oklch(0.22 0.05 260)",
+              border: "1px solid oklch(0.38 0.052 265 / 0.5)",
+              color: textMain,
+            }}
+          >
+            <span>💬</span> WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function TeachersPage() {
   return (
     <div className="min-h-screen">
@@ -47,7 +439,6 @@ export function TeachersPage() {
           borderBottom: "1px solid oklch(0.36 0.052 265 / 0.5)",
         }}
       >
-        {/* Decorative radial glow */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-48 pointer-events-none"
           style={{
@@ -81,7 +472,6 @@ export function TeachersPage() {
         style={{ background: "oklch(0.185 0.035 268)" }}
       >
         <div className="mx-auto max-w-7xl">
-          {/* Section eyebrow */}
           <div className="text-center mb-10">
             <p
               className="text-xs uppercase tracking-[0.3em] font-semibold font-body mb-3"
@@ -101,7 +491,6 @@ export function TeachersPage() {
             />
           </div>
 
-          {/* Leadership cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {LEADERSHIP.map((person) => (
               <div
@@ -114,7 +503,6 @@ export function TeachersPage() {
                     "0 0 32px oklch(0.78 0.168 85 / 0.06), 0 8px 24px oklch(0 0 0 / 0.2)",
                 }}
               >
-                {/* Avatar initials */}
                 <div
                   className="w-16 h-16 rounded-full flex items-center justify-center text-xl font-bold font-display shrink-0"
                   style={{
@@ -125,8 +513,6 @@ export function TeachersPage() {
                 >
                   {getInitials(person.name)}
                 </div>
-
-                {/* Role badge */}
                 <span
                   className="text-[10px] font-bold font-body uppercase tracking-[0.2em] px-3 py-1 rounded-full"
                   style={{
@@ -137,8 +523,6 @@ export function TeachersPage() {
                 >
                   {person.role}
                 </span>
-
-                {/* Name */}
                 <h3
                   className="font-display font-semibold text-lg leading-snug"
                   style={{ color: "oklch(0.92 0.015 80)" }}
@@ -160,7 +544,6 @@ export function TeachersPage() {
         }}
       >
         <div className="mx-auto max-w-7xl">
-          {/* Section header */}
           <div className="text-center mb-10">
             <p
               className="text-xs uppercase tracking-[0.3em] font-semibold font-body mb-3"
@@ -180,7 +563,6 @@ export function TeachersPage() {
             />
           </div>
 
-          {/* Teacher list — 2 col grid on desktop */}
           <div
             data-ocid="teachers.faculty.list"
             className="grid grid-cols-1 sm:grid-cols-2 gap-3"
@@ -195,7 +577,6 @@ export function TeachersPage() {
                   border: "1px solid oklch(0.38 0.052 265 / 0.5)",
                 }}
               >
-                {/* Number badge */}
                 <span
                   className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold font-display shrink-0"
                   style={{
@@ -206,7 +587,6 @@ export function TeachersPage() {
                 >
                   {index + 1}
                 </span>
-                {/* Name */}
                 <span
                   className="font-body font-medium text-sm"
                   style={{ color: "oklch(0.88 0.015 80)" }}
@@ -266,6 +646,19 @@ export function TeachersPage() {
         </div>
       </section>
 
+      {/* ── Teacher Application Section ─────────────────── */}
+      <section
+        className="py-16 px-4 sm:px-6 lg:px-8"
+        style={{
+          background: "oklch(0.185 0.038 266)",
+          borderTop: "1px solid oklch(0.38 0.052 265 / 0.5)",
+        }}
+      >
+        <div className="mx-auto max-w-2xl">
+          <TeacherApplicationForm />
+        </div>
+      </section>
+
       {/* ── Faculty & Students Images ─────────────────────── */}
       <section
         data-ocid="teachers.gallery.section"
@@ -290,7 +683,6 @@ export function TeachersPage() {
               Faculty &amp; Students
             </h2>
           </div>
-          {/* Flexible grid — add more images here later without breaking layout */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
